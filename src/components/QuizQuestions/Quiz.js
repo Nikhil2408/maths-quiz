@@ -78,6 +78,17 @@ function Quiz(props){
         }
     }, [correctAnswer, generateOperands, operand1, operand2, props, questionNumber, score, selectedOperator, userAnswer]);
 
+    const resetClickHandler = useCallback(() => {
+        setOperand1(0);
+        setOperand2(0);
+        setShowQuiz(false);
+        setScore(0);
+        setQuestionNumber(1);
+        setAllQuestions([]);
+        setUserAnswer("");
+        props.calculateTotalScores(score, true);
+    }, [props, score]);
+
     useEffect(() => {
         let timer;
         if(showQuiz && timerCounter > 0 && questionNumber <= props.totalQuestions){
@@ -93,7 +104,7 @@ function Quiz(props){
 
     useEffect(() => {
         resetClickHandler();
-    }, [props.limit, props.totalQuestions, props.chosenOperator])
+    }, [props.limit, props.totalQuestions, props.chosenOperator, resetClickHandler])
 
 
     function clickHandler(){
@@ -107,16 +118,7 @@ function Quiz(props){
         setUserAnswer(parseFloat(eventObj.target.value));
     }
 
-    function resetClickHandler(){
-        setOperand1(0);
-        setOperand2(0);
-        setShowQuiz(false);
-        setScore(0);
-        setQuestionNumber(1);
-        setAllQuestions([]);
-        setUserAnswer("");
-        props.calculateTotalScores(score, true);
-    }
+    
 
     return (
         <div className={styles.Quiz}>
