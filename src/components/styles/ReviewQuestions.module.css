@@ -1,0 +1,24 @@
+.ReviewQuestion{
+    border: 2px solid black;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    margin: 1rem;
+    border-radius: 10px;
+    border: 1px solid #fff;
+    font-size: 1.1rem;
+}
+
+.ReviewQuestion.right{
+    background-color: rgb(60, 194, 60);
+}
+
+.ReviewQuestion.wrong{
+    background-color: rgb(231, 53, 53);
+}
+
+.ReviewQuestion > p{
+    margin: 0.5rem;
+}
