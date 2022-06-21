@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReviewQuestions from "./ReviewQuestions";
 import styles from "../styles/Quiz.module.css";
 
 const operators = ["+", "-", "*", "/"];
 const randomOperator = operators[Math.floor(Math.random() * operators.length)];
+
 
 function Quiz(props){
     const [operand1, setOperand1] = useState(0);
@@ -15,18 +16,6 @@ function Quiz(props){
     const [userAnswer, setUserAnswer] = useState("");
     const [timerCounter, setTimerCounter] = useState(20);
 
-    useEffect(() => {
-        let timer;
-        if(showQuiz && timerCounter > 0){
-            timer = setInterval(() => {
-                setTimerCounter(timerCounter => timerCounter - 1)
-            }, 1000);
-        }
-        if(timerCounter === 0){
-            checkAndDisplayNextQues();
-        }
-        return () => clearInterval(timer);
-    }, [timerCounter, showQuiz])
 
     let correctAnswer;
     const selectedOperator = props.chosenOperator !== "noOperator" ? props.chosenOperator : randomOperator;
@@ -43,11 +32,17 @@ function Quiz(props){
             break;
         case "/":
             correctAnswer = operand1 / operand2;
+            correctAnswer = parseFloat(correctAnswer.toFixed(2));
+            break;
+        case "%":
+            correctAnswer = operand1 % operand2;
             break;
         default:
+            console.log("No Operator Matched");
+            break;
     }
 
-    function generateOperands(){
+    const generateOperands = useCallback( () => {
         if(props.limit === "" || props.limit === 0){
             setOperand1(Math.floor(Math.random() * 10) + 1);
             setOperand2(Math.floor(Math.random() * 10) + 1);
@@ -57,14 +52,9 @@ function Quiz(props){
             setOperand2(Math.floor(Math.random() * props.limit) + 1);
         }
         
-    }
+    }, [props.limit])
 
-    function clickHandler(){
-        setShowQuiz(currentState => !currentState);
-        generateOperands();
-    }
-
-    function checkAndDisplayNextQues(eventObj){
+    const checkAndDisplayNextQues = useCallback((eventObj) => {
         if(eventObj)
             eventObj.preventDefault();
         if(correctAnswer === userAnswer)
@@ -82,13 +72,50 @@ function Quiz(props){
         generateOperands();
         setQuestionNumber(questionNumber => questionNumber + 1);
         setTimerCounter(20);
+        console.log(questionNumber, score);
         if(questionNumber === props.totalQuestions){
-            props.calculateTotalScores(score);
+            props.calculateTotalScores(score, false);
         }
+    }, [correctAnswer, generateOperands, operand1, operand2, props, questionNumber, score, selectedOperator, userAnswer]);
+
+    useEffect(() => {
+        let timer;
+        if(showQuiz && timerCounter > 0 && questionNumber <= props.totalQuestions){
+            timer = setInterval(() => {
+                setTimerCounter(timerCounter => timerCounter - 1)
+            }, 1000);
+        }
+        if(timerCounter === 0){
+            checkAndDisplayNextQues();
+        }
+        return () => clearInterval(timer);
+    }, [timerCounter, showQuiz, questionNumber, props.totalQuestions, checkAndDisplayNextQues])
+
+    useEffect(() => {
+        resetClickHandler();
+    }, [props.limit, props.totalQuestions, props.chosenOperator])
+
+
+    function clickHandler(){
+        setShowQuiz(currentState => !currentState);
+        generateOperands();
     }
+
+    
 
     function inputChangeHandler(eventObj){
         setUserAnswer(parseFloat(eventObj.target.value));
+    }
+
+    function resetClickHandler(){
+        setOperand1(0);
+        setOperand2(0);
+        setShowQuiz(false);
+        setScore(0);
+        setQuestionNumber(1);
+        setAllQuestions([]);
+        setUserAnswer("");
+        props.calculateTotalScores(score, true);
     }
 
     return (
@@ -111,9 +138,14 @@ function Quiz(props){
                     :
                     <button className = {styles.startQuiz} onClick={clickHandler}>Start Quiz</button>)
                 :
-                allQuestions.map(question => {
-                    return <ReviewQuestions key = {question.questionNo} question = {question} />
-                })
+                <div className={styles.ReviewQuestionsWrapper}>
+                    <button onClick = {resetClickHandler}>Reset Quiz</button>
+                    {
+                        allQuestions.map(question => {
+                            return <ReviewQuestions key = {question.questionNo} question = {question} />
+                        })
+                    }
+                </div>
             }
         </div>
     )
