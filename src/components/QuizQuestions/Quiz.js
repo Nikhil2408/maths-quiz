@@ -72,7 +72,6 @@ function Quiz(props){
         generateOperands();
         setQuestionNumber(questionNumber => questionNumber + 1);
         setTimerCounter(20);
-        console.log(questionNumber, score);
         if(questionNumber === props.totalQuestions){
             props.calculateTotalScores(score, false);
         }
